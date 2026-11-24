@@ -1,6 +1,10 @@
 import { signApiRequest } from './web3';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5055';
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5055';
+const API_URL =
+  configuredApiUrl.startsWith('http://') || configuredApiUrl.startsWith('https://')
+    ? configuredApiUrl
+    : `https://${configuredApiUrl}`;
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
