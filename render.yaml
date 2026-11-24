@@ -28,7 +28,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: AES_MASTER_KEY
-        generateValue: true
+        sync: false
       - key: SEPOLIA_RPC_URL
         sync: false
       - key: SEPOLIA_DEPLOYER_PRIVATE_KEY
