@@ -1,0 +1,65 @@
+services:
+  - type: web
+    name: medveil-api
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    buildCommand: npm ci && npm --prefix backend ci && npx hardhat compile
+    startCommand: node backend/src/server.js
+    healthCheckPath: /health
+    disk:
+      name: medveil-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.11.1
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CHAIN_ID
+        value: 11155111
+      - key: DB_PATH
+        value: /var/data/medveil.sqlite
+      - key: MEDVEIL_STORAGE_DIR
+        value: /var/data/encrypted
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AES_MASTER_KEY
+        sync: false
+      - key: SEPOLIA_RPC_URL
+        sync: false
+      - key: SEPOLIA_DEPLOYER_PRIVATE_KEY
+        sync: false
+      - key: VERIFIER_CONTRACT_ADDRESS
+        sync: false
+      - key: HOSPITAL_REGISTRY_ADDRESS
+        sync: false
+      - key: POLICY_REGISTRY_ADDRESS
+        sync: false
+      - key: PATIENT_ACCESS_ADDRESS
+        sync: false
+      - key: TEST_TOKEN_ADDRESS
+        sync: false
+      - key: CLAIM_SETTLEMENT_ADDRESS
+        sync: false
+
+  - type: web
+    name: medveil-web
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 24.11.1
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: medveil-api
+          property: host
