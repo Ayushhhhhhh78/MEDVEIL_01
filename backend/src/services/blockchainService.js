@@ -37,28 +37,44 @@ function getRelayerWallet() {
  * Loads deployed contract addresses from deployed-addresses.json or .env
  */
 function getContractAddresses() {
+  let fileAddresses = {};
   if (fs.existsSync(DEPLOYMENTS_FILE)) {
     try {
       const data = JSON.parse(fs.readFileSync(DEPLOYMENTS_FILE, 'utf-8'));
-      if (data.contracts) {
-        return data.contracts;
-      }
+      fileAddresses = data.contracts || {};
     } catch (e) {
-      // Fallback to env
+      // Environment configuration remains available as a fallback.
     }
   }
 
+  // Explicit environment values take precedence over committed local-dev addresses.
   return {
-    Groth16Verifier: process.env.VERIFIER_CONTRACT_ADDRESS,
-    HospitalRegistry: process.env.HOSPITAL_REGISTRY_ADDRESS,
-    PolicyRegistry: process.env.POLICY_REGISTRY_ADDRESS,
-    PatientAccess: process.env.PATIENT_ACCESS_ADDRESS,
-    TestToken: process.env.TEST_TOKEN_ADDRESS,
-    ClaimSettlement: process.env.CLAIM_SETTLEMENT_ADDRESS,
+    Groth16Verifier: process.env.VERIFIER_CONTRACT_ADDRESS || fileAddresses.Groth16Verifier,
+    HospitalRegistry: process.env.HOSPITAL_REGISTRY_ADDRESS || fileAddresses.HospitalRegistry,
+    PolicyRegistry: process.env.POLICY_REGISTRY_ADDRESS || fileAddresses.PolicyRegistry,
+    PatientAccess: process.env.PATIENT_ACCESS_ADDRESS || fileAddresses.PatientAccess,
+    TestToken: process.env.TEST_TOKEN_ADDRESS || fileAddresses.TestToken,
+    ClaimSettlement: process.env.CLAIM_SETTLEMENT_ADDRESS || fileAddresses.ClaimSettlement,
   };
 }
 
 function getDeploymentConfig() {
+  const configuredChainId = Number(process.env.CHAIN_ID);
+  if (Number.isInteger(configuredChainId) && configuredChainId > 0) {
+    return {
+      chainId: configuredChainId,
+      network:
+        configuredChainId === 11155111
+          ? 'sepolia'
+          : configuredChainId === 80002
+            ? 'amoy'
+            : configuredChainId === 31337
+              ? 'localhost'
+              : 'custom',
+      policyRegistryAddress: process.env.POLICY_REGISTRY_ADDRESS,
+    };
+  }
+
   if (fs.existsSync(DEPLOYMENTS_FILE)) {
     const data = JSON.parse(fs.readFileSync(DEPLOYMENTS_FILE, 'utf-8'));
     return {
@@ -69,7 +85,7 @@ function getDeploymentConfig() {
   }
 
   return {
-    chainId: Number(process.env.CHAIN_ID || 31337),
+    chainId: 31337,
     network: 'localhost',
     policyRegistryAddress: process.env.POLICY_REGISTRY_ADDRESS,
   };
