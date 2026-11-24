@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const STORAGE_DIR = path.join(__dirname, '..', '..', 'storage', 'encrypted');
+const STORAGE_DIR =
+  process.env.MEDVEIL_STORAGE_DIR ||
+  path.join(__dirname, '..', '..', 'storage', 'encrypted');
 
 if (!fs.existsSync(STORAGE_DIR)) {
   fs.mkdirSync(STORAGE_DIR, { recursive: true });
